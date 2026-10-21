@@ -1,0 +1,3 @@
+# Les scripts de vérification ne représentent pas le langage principal du projet.
+tests/*.java linguist-vendored
+tests/*.ps1 linguist-vendored
