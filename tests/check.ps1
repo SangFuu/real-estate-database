@@ -21,7 +21,7 @@ try {
         Write-Output "$xmlCount documents XML lisibles."
     } finally {$archive.Dispose()}
     Add-Content -LiteralPath (Join-Path $temp 'base.properties') -Value "`nreadonly=true" -Encoding ascii
-    & $Java --class-path $jar (Join-Path $PSScriptRoot 'CheckDatabase.java') (Join-Path $temp 'base') (Join-Path $repo 'schema.sql') (Join-Path $repo 'requetes.sql')
+    & $Java --class-path $jar (Join-Path $PSScriptRoot 'CheckDatabase.java') (Join-Path $temp 'base') (Join-Path $repo 'hsqldb/schema.sql') (Join-Path $repo 'hsqldb/requetes.sql')
     if($LASTEXITCODE -ne 0){throw 'Verification de la base echouee.'}
 } finally {
     Get-ChildItem -LiteralPath $temp -File | ForEach-Object {Remove-Item -LiteralPath $_.FullName}

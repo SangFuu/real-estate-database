@@ -1,0 +1,62 @@
+erDiagram
+    AGENCE ||--o{ PERSONNEL : emploie
+    AGENCE ||--o{ BIEN : "a en mandat"
+    AGENCE ||--o{ CONTRAT_BAIL : signe
+    PROPRIETAIRE ||--o{ BIEN : possede
+    PERSONNEL |o--o{ BIEN : gere
+    BIEN ||--o{ CONTRAT_BAIL : "est loue par"
+    LOCATAIRE ||--o{ CONTRAT_BAIL : signe
+    CONTRAT_BAIL ||--o{ PAIEMENT : "donne lieu a"
+    BIEN ||--o{ FACTURE : concerne
+    ENTREPRENEUR ||--o{ FACTURE : emet
+
+    AGENCE { int id_agence PK
+             string nom
+             string adresse
+             string ville }
+    PERSONNEL { int id_personnel PK
+                string nom
+                string prenom
+                int id_agence FK }
+    PROPRIETAIRE { int id_proprio PK
+                   string nom
+                   string prenom
+                   string tel
+                   string adresse }
+    BIEN { int id_bien PK
+           string adresse
+           string code_postal
+           string ville
+           decimal surface
+           decimal loyer_hc
+           decimal charges
+           string type_mandat "SIMPLE | GESTION"
+           int id_proprio FK
+           int id_agence FK
+           int id_personnel_gestionnaire FK }
+    LOCATAIRE { int id_locataire PK
+                string nom
+                string prenom
+                string tel
+                decimal solde_compte }
+    CONTRAT_BAIL { int id_bail PK
+                   date date_debut
+                   date date_fin "NULL = en cours"
+                   int id_bien FK
+                   int id_locataire FK
+                   int id_agence FK }
+    PAIEMENT { int id_paiement PK
+               date date_paiement
+               decimal montant
+               string moyen_paiement
+               int id_bail FK }
+    ENTREPRENEUR { int id_entrepreneur PK
+                   string nom_societe
+                   string metier
+                   string tel }
+    FACTURE { int id_facture PK
+              date date_facture
+              decimal montant
+              string objet
+              int id_bien FK
+              int id_entrepreneur FK }

@@ -1,23 +1,68 @@
 # Real Estate Database
 
-I created this project with Adnane Serrai as a pair project during my computer science degree. We designed a real-estate agency database with LibreOffice Base, SQL and JavaScript forms.
+[![sql](https://github.com/SangFuu/real-estate-database/actions/workflows/sql.yml/badge.svg)](https://github.com/SangFuu/real-estate-database/actions/workflows/sql.yml)
 
-This project helped me work on the data model, table relationships, SQL queries and forms. All data used in the project is fictional.
+Database for a fictional real-estate agency, made with Adnane Serrai during my computer science degree: properties, owners, tenants, leases, rent payments and contractor invoices. All data is fictional.
+
+The project was first built in LibreOffice Base (HSQLDB, with forms and reports). I then rewrote the schema by hand in standard SQL so it runs without LibreOffice, on SQLite or PostgreSQL.
+
+![Entity-relationship diagram](docs/mcd.png)
+
+## Run it without LibreOffice
+
+With SQLite:
+
+```sh
+sqlite3 agence.db < sql/schema.sql
+sqlite3 agence.db < sql/data.sql
+sqlite3 -header -column agence.db < sql/queries.sql
+```
+
+With PostgreSQL:
+
+```sh
+createdb agence
+psql -d agence -f sql/schema.sql -f sql/data.sql
+psql -d agence -f sql/queries.sql
+```
+
+## What the schema enforces
+
+- Named foreign keys between all tables (`fk_bail_bien`, `fk_facture_entrepreneur`...)
+- `CHECK` constraints: positive rent, surface and amounts, `date_fin > date_debut` on leases, 5-character postcode, mandate type `SIMPLE` or `GESTION`, known payment methods
+- Indexes on foreign keys and on `bien.ville`, which the queries filter on
+- `date_fin` is `NULL` while a lease is still running
+
+## Queries
+
+`sql/queries.sql` has the 10 queries from the assignment plus three of mine (tenants in debt, properties without a current lease, rent received minus repair costs per property). For example:
+
+```sql
+-- Contractors who worked in Poitiers but never in Châtellerault
+SELECT DISTINCT e.nom_societe
+FROM entrepreneur e
+JOIN facture f ON f.id_entrepreneur = e.id_entrepreneur
+JOIN bien b    ON b.id_bien = f.id_bien
+WHERE b.ville = 'Poitiers'
+  AND NOT EXISTS (
+    SELECT 1 FROM facture f2 JOIN bien b2 ON b2.id_bien = f2.id_bien
+    WHERE f2.id_entrepreneur = e.id_entrepreneur AND b2.ville = 'Chatellerault'
+  );
+```
 
 ## Files
 
-- `agence-immobiliere.odb`: the database with data, forms and reports.
-- `schema.sql`: tables and their relationships.
-- `requetes.sql`: queries used in the project.
-
-## Open the database
-
-Open `agence-immobiliere.odb` in LibreOffice Base, preferably on a copy. The database uses HSQLDB; a compatible Java installation may be required.
-
-The SQL scripts use the HSQLDB dialect. They do not recreate the forms and reports contained in the LibreOffice file.
+- `sql/`: portable schema, data and queries
+- `docs/mcd.png`: entity-relationship diagram (source in `docs/mcd.mmd`, Mermaid)
+- `agence-immobiliere.odb`: the original LibreOffice Base file, with forms and reports (open a copy)
+- `hsqldb/`: the schema and queries as exported from LibreOffice (HSQLDB dialect)
 
 ## Tests
 
-Checks cover queries and table relationships. Forms and reports still need to be checked in LibreOffice Base.
+```sh
+python3 -m unittest discover -s tests -v
+```
 
-The Java and PowerShell files are only used to check the database; the main project is SQL, with JavaScript forms.
+Loads the database in SQLite, checks row counts and foreign keys, checks that invalid rows are rejected by the constraints and checks query results. GitHub Actions also runs the scripts on PostgreSQL 16.
+
+`tests/check.ps1` and `tests/CheckDatabase.java` check the original `.odb` file with HSQLDB.
